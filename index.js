@@ -24,7 +24,7 @@ db.connect((err) => {
   console.log("✅ Connected to DB");
 });
 
-// 🟢 REGISTER
+// 🟢 REGISTER (βελτιωμένο - επιστρέφει token & username)
 app.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -42,7 +42,14 @@ app.post("/register", async (req, res) => {
           console.error("❌ SQL Error:", err);
           return res.status(500).send(err.sqlMessage || "Registration error");
         }
-        res.status(201).send("User registered");
+
+        const userId = result.insertId;
+
+        const token = jwt.sign({ id: userId, role: 'user' }, process.env.JWT_SECRET, {
+          expiresIn: "1d",
+        });
+
+        res.status(201).json({ token, username, role: "user" });
       }
     );
   } catch (error) {
